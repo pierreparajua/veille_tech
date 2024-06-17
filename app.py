@@ -2,7 +2,7 @@ import requests
 from urllib.parse import quote
 import streamlit as st
 from datetime import datetime
-from bs4 import BeautifulSoup
+from lxml import html
 
 # Fonction pour récupérer les données de Feedly
 def get_feedly_data():
@@ -20,6 +20,13 @@ def get_feedly_data():
         st.error(response.text)
         return None
 
+# Fonction pour extraire le texte d'un contenu HTML en utilisant lxml
+def extract_text_from_html(html_content):
+    if html_content.strip():  # Vérifiez que le contenu n'est pas vide
+        tree = html.fromstring(html_content)
+        return tree.text_content()
+    return ""
+
 # Fonction principale pour afficher les données avec Streamlit
 def main():
     st.set_page_config(page_title="Feedly Board Data", page_icon="📈", initial_sidebar_state="expanded")
@@ -28,7 +35,6 @@ def main():
     st.markdown(
         """
         <style>
-        }
         .article-separator {
             border-bottom: 2px solid white;
             margin: 20px 0;
@@ -91,7 +97,7 @@ def main():
                     st.image(entry['visual']['url'], use_column_width=True)
                 # Afficher le résumé de l'article sans les balises HTML
                 summary_html = entry.get('summary', {}).get('content', '')
-                summary_text = BeautifulSoup(summary_html, "html.parser").get_text()
+                summary_text = extract_text_from_html(summary_html)
                 st.write(summary_text)
                 st.markdown('<div class="article-separator"></div>', unsafe_allow_html=True)
 
